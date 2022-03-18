@@ -7,6 +7,7 @@
   "scripts": {
     "simple": "node ./src/simple-demo/index.js",
     "producer": "node ./src/producer-demo/index.js",
+    "multi-topics": "node ./src/multi-topic-producer-demo/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
