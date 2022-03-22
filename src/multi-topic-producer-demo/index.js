@@ -53,23 +53,39 @@ const runProducer = async () => {
   await kafkaProducer.disconnect();
 }
 
+const processMessage = async ({
+  batch,
+  resolveOffset,
+  heartbeat,
+  commitOffsetsIfNecessary,
+  uncommitedOffsets,
+  isRunning,
+  isState
+}) => {
+  for(const message of batch.messages) {
+    console.log({
+      topic: batch.topic,
+      message: {
+        offset: message.offset ?? 'no offset',
+        key: message.key?.toString() ?? 'no key provided',
+        value: message.value?.toString() ?? 'no value provided',
+      }
+    });
+    resolveOffset(message.offset); // Infoma o kafka para incrementar o offset para essa mensagem, informando que já foi lida
+    await heartbeat(); // 
+  }
+}
+
 const startConsumer = async () => {
-  const kafkaConsumer = kafkaClient.consumer({ groupId: 'simple-groups' })
+  const kafkaConsumer = kafkaClient.consumer({ groupId: 'simple1' })
 
   await kafkaConsumer.connect();
   await kafkaConsumer.subscribe({ topic: 'simple-topic', fromBeginning: true });
   await kafkaConsumer.subscribe({ topic: 'quickstart', fromBeginning: true });
   
   await kafkaConsumer.run({
-    eachMessage: async ({ topic, partition, message }) => {
-      console.log({
-        key: message.key?.toString() ?? 'no key provided',
-        value: message.value?.toString() ?? 'no value provided',
-        headers: message.headers,
-        topic,
-        partition
-      })
-    }
+    eachBatchAutoResolve: true,
+    eachBatch: processMessage
   })
 }
 
